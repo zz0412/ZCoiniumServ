@@ -139,7 +139,7 @@ namespace CoiniumServ.Daemon
             webRequest.ContentType = "application/json-rpc";
             webRequest.Method = "POST";
             webRequest.Timeout = _timeout;
-
+		
             _logger.Verbose("tx: {0}", Encoding.UTF8.GetString(walletRequest.GetBytes()).PrettifyJson());
 
             byte[] byteArray = walletRequest.GetBytes();
@@ -162,7 +162,7 @@ namespace CoiniumServ.Daemon
             catch (Exception exception)
             {
                 webRequest = null;
-                throw _rpcExceptionFactory.GetRpcException("An unknown exception occured while making json request.", exception);                
+                throw _rpcExceptionFactory.GetRpcException("An unknown exception occured while making json request."+exception.ToString(), exception);                
             }
         }
 
@@ -175,7 +175,6 @@ namespace CoiniumServ.Daemon
         private DaemonResponse<T> GetRpcResponse<T>(HttpWebRequest httpWebRequest)
         {
             string json = GetJsonResponse(httpWebRequest);
-
             _logger.Verbose("rx: {0}", json.PrettifyJson());
 
             try

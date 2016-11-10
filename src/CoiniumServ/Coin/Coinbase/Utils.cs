@@ -62,13 +62,13 @@ namespace CoiniumServ.Coin.Coinbase
                 return null;
             }
 
-            if (decoded.Length != 25)
+            if (decoded.Length < 25 || decoded.Length > 26)
             {
                 Log.Error("invalid address length for {0:l}", address);
                 return null;
             }
 
-            var pubkey = decoded.Slice(1, -4);
+            var pubkey = decoded.Slice(decoded.Length == 25 ? 1 : 2, -4);
 
             byte[] result;
 
@@ -82,6 +82,7 @@ namespace CoiniumServ.Coin.Coinbase
                 stream.WriteValueU8(0xac);
 
                 result = stream.ToArray();
+                
             }
 
             return result;
@@ -152,7 +153,7 @@ namespace CoiniumServ.Coin.Coinbase
             var numBytes = Convert.ToByte(buffer.Take(1));
             var bigIntBits = new BigInteger(buffer.Slice(1, buffer.Length - 1));
 
-            var multiplier = new BigInteger(2 ^ 8*(numBytes - 3));
+            var multiplier = new BigInteger(2 ^ 8 * (numBytes - 3));
             var target = BigInteger.Multiply(bigIntBits, multiplier);
 
             return target;

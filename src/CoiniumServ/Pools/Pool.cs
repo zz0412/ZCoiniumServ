@@ -261,7 +261,6 @@ namespace CoiniumServ.Pools
                 var stratumServer = _objectFactory.GetMiningServer("Stratum", Config, this, MinerManager, _jobManager, _banningManager);
                 var stratumService = _objectFactory.GetMiningService("Stratum", Config, _shareManager, Daemon);
                 stratumServer.Initialize(Config.Stratum);
-
                 _servers.Add(stratumServer, stratumService);
             }
 

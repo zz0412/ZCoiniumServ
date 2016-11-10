@@ -29,11 +29,12 @@ using CoiniumServ.Daemon;
 using CoiniumServ.Daemon.Exceptions;
 using CoiniumServ.Persistance.Layers;
 using CoiniumServ.Pools;
+using Newtonsoft.Json.Linq;
 using Serilog;
 
 namespace CoiniumServ.Payments
 {
-    public class PaymentProcessor:IPaymentProcessor
+    public class PaymentProcessor : IPaymentProcessor
     {
         public bool Active { get; private set; }
 
@@ -51,6 +52,36 @@ namespace CoiniumServ.Payments
 
         private readonly ILogger _logger;
 
+        private string _poolZAddress;
+
+        private void FindPoolZAddress()
+        {
+            try
+            {
+                var o = JObject.Parse(_daemonClient.MakeRawRequest("z_listaddresses"));
+                _poolZAddress = o["result"][0].ToString();
+            }
+            catch (RpcException e)
+            {
+                _logger.Error("Error getting z address for pool central wallet: {0:l} - {1:l}", _poolConfig.Wallet.Adress, e.Message);
+            }
+        }
+
+
+        private decimal GetZBalance(string address)
+        {
+            try
+            {
+                var o = JObject.Parse(_daemonClient.MakeRawRequest("z_getbalance", address));
+                return decimal.Parse(o["result"].ToString());
+            }
+            catch (RpcException e)
+            {
+                _logger.Error("Error getting z balance for pool central wallet: {0:l} - {1:l}", address, e.Message);
+                throw;
+            }
+        }
+
         public PaymentProcessor(IPoolConfig poolConfig, IStorageLayer storageLayer, IDaemonClient daemonClient, IAccountManager accountManager)
         {
             _poolConfig = poolConfig;
@@ -67,6 +98,7 @@ namespace CoiniumServ.Payments
 
             if (!GetPoolAccount()) // get the pool's account name if any.
                 return; // if we can't, stop the payment processor.
+            FindPoolZAddress();
 
             Active = true;
         }
@@ -91,10 +123,11 @@ namespace CoiniumServ.Payments
         {
             var pendingPayments = _storageLayer.GetPendingPayments(); // get all pending payments.
             var perUserTransactions = new Dictionary<string, List<ITransaction>>();  // list of payments to be executed.
-             
+
             foreach (var payment in pendingPayments)
             {
-                try { 
+                try
+                {
                     // query the user for the payment.
                     var user = _accountManager.GetAccountById(payment.AccountId);
 
@@ -118,11 +151,17 @@ namespace CoiniumServ.Payments
 
                     perUserTransactions[user.Username].Add(new Transaction(user, payment, _poolConfig.Coin.Symbol)); // add the payment to user.
                 }
-                catch(RpcException)
+                catch (RpcException)
                 { } // on rpc exception; just skip the payment for now.
             }
 
             return perUserTransactions;
+        }
+
+        class SendMany
+        {
+            public string address { get; set; }
+            public decimal amount { get; set; }
         }
 
         private IList<ITransaction> ExecutePayments(IEnumerable<KeyValuePair<string, List<ITransaction>>> paymentsToExecute)
@@ -131,24 +170,53 @@ namespace CoiniumServ.Payments
 
             try
             {
+                var dic = new List<SendMany>();
+                var balance = GetZBalance(_poolConfig.Wallet.Adress);
+                if (balance > 0)
+                {
+                    dic.Add(new SendMany() { address = _poolZAddress, amount = balance - 0.0001M });
+
+                    _daemonClient.MakeRawRequest("z_sendmany", _poolConfig.Wallet.Adress, dic);
+                }
+                //move money to z_address
+
+
+
+                var zBalance = this.GetZBalance(_poolZAddress);
+
+
+                decimal total = 0;
+
                 // filter out users whom total amount doesn't exceed the configured minimum payment amount.
                 var filtered = paymentsToExecute.Where(
-                        x => x.Value.Sum(y => y.Payment.Amount) >= (decimal)_poolConfig.Payments.Minimum)
+                    x =>
+                    {
+                        var sum = x.Value.Sum(y => y.Payment.Amount);
+
+                        if (total + sum > zBalance)
+                            return false;
+                        total += sum;
+
+                        return sum >= (decimal)_poolConfig.Payments.Minimum;
+                    })
                         .ToDictionary(x => x.Key, x => x.Value);
 
                 if (filtered.Count <= 0)  // make sure we have payments to execute even after our filter.
                     return executed;
 
+
                 // coin daemon expects us to handle outputs in <wallet_address,amount> format, create the data structure so.
-                var outputs = filtered.ToDictionary(x => x.Key, x => x.Value.Sum(y => y.Payment.Amount));
+                var outputs = filtered.Select(x => new SendMany() { address = x.Key, amount = x.Value.Sum(y => y.Payment.Amount) }).ToList();
+
 
                 // send the payments all-together.
-                var txHash = _daemonClient.SendMany(_poolAccount, outputs);
+                var zSendManyJson = _daemonClient.MakeRawRequest("z_sendmany", _poolZAddress, outputs);
+                var opid = JObject.Parse(zSendManyJson)["result"].ToString();
 
                 // loop through all executed payments
                 filtered.ToList().ForEach(x => x.Value.ForEach(y =>
                 {
-                    y.TxHash = txHash; // set transaction id.
+                    y.TxHash = opid; // set transaction id.
                     y.Payment.Completed = true; // set as completed.
                 }));
 
@@ -211,5 +279,6 @@ namespace CoiniumServ.Payments
                 return false;
             }
         }
+
     }
 }

@@ -28,6 +28,7 @@ using CoiniumServ.Jobs;
 using CoiniumServ.Utils.Extensions;
 using CoiniumServ.Utils.Helpers;
 using Gibbed.IO;
+using RestSharp.Extensions;
 
 namespace CoiniumServ.Coin.Coinbase
 {
@@ -82,43 +83,43 @@ namespace CoiniumServ.Coin.Coinbase
         /// <param name="nTime"></param>
         /// <param name="nonce"></param>
         /// <returns></returns>
-        public static byte[] SerializeHeader(IJob job, byte[] merkleRoot, UInt32 nTime, UInt32 nonce)
+        public static byte[] SerializeHeader(IJob job, byte[] merkleRoot,byte[] nonce, UInt32 nTime,byte[] solution)
         {
             byte[] result;
-
             using (var stream = new MemoryStream())
             {
-                stream.WriteValueU32(nonce.BigEndian());
+                stream.WriteBytes(solution);
+                stream.WriteBytes(nonce);
                 stream.WriteValueU32(Convert.ToUInt32(job.EncodedDifficulty, 16).BigEndian());
                 stream.WriteValueU32(nTime.BigEndian());
+                stream.WriteBytes(new byte[32]);
                 stream.WriteBytes(merkleRoot);
                 stream.WriteBytes(job.PreviousBlockHash.HexToByteArray());
                 stream.WriteValueU32(job.BlockTemplate.Version.BigEndian());
 
                 result = stream.ToArray();
                 result = result.ReverseBytes();
-            }
 
+
+
+            }
             return result;
         }
 
-        public static byte[] SerializeCoinbase(IJob job, UInt32 extraNonce1, UInt32 extraNonce2)
+        public static byte[] SerializeCoinbase(IJob job, UInt32 extraNonce1)
         {
             var extraNonce1Buffer = BitConverter.GetBytes(extraNonce1.BigEndian());
-            var extraNonce2Buffer = BitConverter.GetBytes(extraNonce2.BigEndian());
-
+            
             byte[] result;
 
             using (var stream = new MemoryStream())
             {
                 stream.WriteBytes(job.CoinbaseInitial.HexToByteArray());
                 stream.WriteBytes(extraNonce1Buffer);
-                stream.WriteBytes(extraNonce2Buffer);
                 stream.WriteBytes(job.CoinbaseFinal.HexToByteArray());
 
                 result = stream.ToArray();
             }
-
             return result;
         }
 

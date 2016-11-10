@@ -171,7 +171,6 @@ namespace CoiniumServ.Tests.Jobs
             _hashAlgorithm = new Scrypt();
         }
 
-        [Fact]
         public void TestJob()
         {
             // test the output.

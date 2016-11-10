@@ -29,7 +29,7 @@ namespace CoiniumServ.Shares
 {
     public interface IShareManager
     {
-        IShare ProcessShare(IStratumMiner miner, string jobId, string extraNonce2, string nTimeString, string nonceString);
+        IShare ProcessShare(IStratumMiner miner, string jobId, string nTime, string extraNonce2, string equihashSolution);
 
         IShare ProcessShare(IGetworkMiner miner, string data);
 

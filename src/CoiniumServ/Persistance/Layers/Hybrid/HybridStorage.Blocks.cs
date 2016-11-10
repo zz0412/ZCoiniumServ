@@ -46,7 +46,7 @@ namespace CoiniumServ.Persistance.Layers.Hybrid
                 using (var connection = new MySqlConnection(_mySqlProvider.ConnectionString))
                 {
                     connection.Execute(
-                        @"INSERT INTO Block(Height, BlockHash, TxHash, Amount, CreatedAt) VALUES (@height, @blockHash, @txHash, @amount, @createdAt)",
+                        @"INSERT INTO Block(Height, BlockHash, TxHash, Amount, CreatedAt, Reward) VALUES (@height, @blockHash, @txHash, @amount, @createdAt, 0)",
                         new
                         {
                             height = share.Block.Height,

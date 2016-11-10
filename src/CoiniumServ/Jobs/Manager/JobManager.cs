@@ -33,6 +33,8 @@ using CoiniumServ.Server.Mining.Getwork;
 using CoiniumServ.Server.Mining.Stratum;
 using CoiniumServ.Shares;
 using CoiniumServ.Transactions;
+using CoiniumServ.Utils.Extensions;
+using CoiniumServ.Utils.Numerics;
 using Serilog;
 
 namespace CoiniumServ.Jobs.Manager
@@ -72,7 +74,7 @@ namespace CoiniumServ.Jobs.Manager
             _minerManager = minerManager;
             _hashAlgorithm = hashAlgorithm;
             _poolConfig = poolConfig;
-            
+
             _jobCounter = new JobCounter(); // todo make this ioc based too.
 
             _logger = Log.ForContext<JobManager>().ForContext("Component", poolConfig.Coin.Name);
@@ -85,7 +87,7 @@ namespace CoiniumServ.Jobs.Manager
             _minerManager.MinerAuthenticated += OnMinerAuthenticated;
 
             // create the timers as disabled.
-            _reBroadcastTimer = new Timer(IdleJobTimer, null,Timeout.Infinite, Timeout.Infinite);
+            _reBroadcastTimer = new Timer(IdleJobTimer, null, Timeout.Infinite, Timeout.Infinite);
             _blockPollerTimer = new Timer(BlockPoller, null, Timeout.Infinite, Timeout.Infinite);
 
             CreateAndBroadcastNewJob(true); // broadcast a new job initially - which will also setup the timers.
@@ -114,7 +116,7 @@ namespace CoiniumServ.Jobs.Manager
 
                 if (blockTemplate.Height == _jobTracker.Current.Height) // if network reports the same block-height with our current job.
                     return; // just return.
-                
+
                 _logger.Verbose("A new block {0} emerged in network, rebroadcasting new work", blockTemplate.Height);
                 CreateAndBroadcastNewJob(false); // broadcast a new job.
             }
@@ -126,9 +128,9 @@ namespace CoiniumServ.Jobs.Manager
         private void CreateAndBroadcastNewJob(bool initiatedByTimer)
         {
             IJob job = null;
-
             for (var i = 0; i < 3; i++) // try creating a new job 5 times at least.
             {
+
                 job = GetNewJob(); // create a new job.
 
                 if (job != null)
@@ -212,13 +214,14 @@ namespace CoiniumServ.Jobs.Manager
             if (miner is IGetworkMiner) // only stratum miners needs to be submitted new jobs.
                 return false;
 
-            var stratumMiner = (IStratumMiner) miner;
+            var stratumMiner = (IStratumMiner)miner;
 
             if (!stratumMiner.Authenticated)
                 return false;
 
             if (!stratumMiner.Subscribed)
                 return false;
+            
 
             stratumMiner.SendJob(job);
 

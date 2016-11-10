@@ -59,7 +59,6 @@ namespace CoiniumServ.Tests.Transactions.Script
             _extraNonce = new ExtraNonce(0);
         }
 
-        [Fact]
         public void SignatureScriptTest()
         {            
             var signatureScript = new SignatureScript(

@@ -30,6 +30,7 @@ using CoiniumServ.Daemon.Responses;
 using CoiniumServ.Persistance.Blocks;
 using CoiniumServ.Persistance.Layers;
 using CoiniumServ.Pools;
+using Newtonsoft.Json.Linq;
 using Serilog;
 
 namespace CoiniumServ.Blocks
@@ -50,6 +51,7 @@ namespace CoiniumServ.Blocks
 
         private string _poolAccount;
 
+
         public BlockProcessor(IPoolConfig poolConfig, IDaemonClient daemonClient, IStorageLayer storageLayer)
         {
             _poolConfig = poolConfig;
@@ -58,7 +60,6 @@ namespace CoiniumServ.Blocks
             _logger = Log.ForContext<BlockProcessor>().ForContext("Component", poolConfig.Coin.Name);
 
             FindPoolAccount();
-
             Active = true;
         }
 
@@ -254,5 +255,6 @@ namespace CoiniumServ.Blocks
                 _logger.Error("Error getting account for pool central wallet address: {0:l} - {1:l}", _poolConfig.Wallet.Adress, e.Message);
             }
         }
+
     }
 }

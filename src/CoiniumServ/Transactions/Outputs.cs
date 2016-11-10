@@ -29,6 +29,7 @@ using CoiniumServ.Coin.Address.Exceptions;
 using CoiniumServ.Coin.Coinbase;
 using CoiniumServ.Coin.Config;
 using CoiniumServ.Daemon;
+using CoiniumServ.Utils.Extensions;
 using Gibbed.IO;
 
 namespace CoiniumServ.Transactions
@@ -63,7 +64,7 @@ namespace CoiniumServ.Transactions
         {
             // check if the supplied wallet address is correct.
             var result = _daemonClient.ValidateAddress(walletAddress);
-
+	    
             if (!result.IsValid)
                 throw new InvalidWalletAddressException(walletAddress);
 
@@ -105,7 +106,7 @@ namespace CoiniumServ.Transactions
                 foreach (var transaction in List)
                 {
                     stream.WriteValueU64(transaction.Value);
-                    stream.WriteBytes(transaction.PublicKeyScriptLenght);
+                    stream.WriteBytes(transaction.PublicKeyScriptLenght.ReverseBytes());
                     stream.WriteBytes(transaction.PublicKeyScript);
                 }
 

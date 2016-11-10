@@ -59,6 +59,7 @@ namespace CoiniumServ.Transactions.Script
                 stream.WriteByte(extraNoncePlaceholder);
 
                 Initial = stream.ToArray();
+
             }
 
             Final = Serializers.SerializeString(signature);

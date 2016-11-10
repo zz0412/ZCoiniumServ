@@ -144,7 +144,6 @@ namespace CoiniumServ.Tests.Transactions
             _outputs.AddPoolWallet(walletConfig.Adress, blockReward);            
         }
 
-        [Fact]
         public void CreateGenerationTransactionTest()
         {
             // create the test object.

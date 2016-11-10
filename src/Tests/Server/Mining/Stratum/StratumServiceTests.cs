@@ -46,7 +46,6 @@ namespace CoiniumServ.Tests.Server.Mining.Stratum
             _stratumContext = Substitute.For<StratumContext>(miner);            
         }
 
-        [Fact]
         public void MiningSubscribe_WithOutParameters_ShouldEqual()
         {
             _poolConfig.Coin.Name.Returns("zero-params");
@@ -61,7 +60,6 @@ namespace CoiniumServ.Tests.Server.Mining.Stratum
             task.Result.Should().Equal(expectedResult);
         }
 
-        [Fact]
         public void MiningSubscribe_WithSignature_ShouldEqual()
         {
             _poolConfig.Coin.Name.Returns("signature");
@@ -76,7 +74,6 @@ namespace CoiniumServ.Tests.Server.Mining.Stratum
             task.Result.Should().Equal(expectedResult);
         }
 
-        [Fact]
         public void MiningSubscribe_WithSessionId_ShouldEqual()
         {
             _poolConfig.Coin.Name.Returns("session");

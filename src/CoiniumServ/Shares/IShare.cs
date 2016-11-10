@@ -66,7 +66,7 @@ namespace CoiniumServ.Shares
 
         UInt32 ExtraNonce1 { get; }
 
-        UInt32 ExtraNonce2 { get; }
+        string ExtraNonce2 { get; }
 
         byte[] CoinbaseBuffer { get; }
 
