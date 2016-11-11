@@ -157,7 +157,7 @@ namespace CoiniumServ.Server.Mining.Stratum
         {
             if (e.Connection == null)
                 return;
-
+            
             var connection = (Connection) e.Connection;
             if (connection.Client == null)
                 return;

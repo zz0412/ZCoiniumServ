@@ -53,12 +53,11 @@ namespace CoiniumServ.Persistance.Layers.Hybrid.Migrations
 
             // add accounted column to block table
             Execute.Sql("ALTER TABLE Block ADD Accounted Boolean NOT NULL AFTER Confirmed");
-
             // create the users table.
             Create.Table("Account")                
                 .WithColumn("Id").AsInt32().NotNullable().PrimaryKey().Identity()
                 .WithColumn("Username").AsString().NotNullable().Unique()
-                .WithColumn("Address").AsString(35).NotNullable().Unique()
+                .WithColumn("Address").AsString(120).NotNullable().Unique()
                 .WithColumn("CreatedAt").AsDateTime().NotNullable();
 
             // create the payout table.

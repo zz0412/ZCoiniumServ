@@ -139,6 +139,7 @@ namespace CoiniumServ.Daemon
             webRequest.ContentType = "application/json-rpc";
             webRequest.Method = "POST";
             webRequest.Timeout = _timeout;
+            webRequest.KeepAlive = true;
 		
             _logger.Verbose("tx: {0}", Encoding.UTF8.GetString(walletRequest.GetBytes()).PrettifyJson());
 
