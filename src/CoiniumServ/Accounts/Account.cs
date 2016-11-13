@@ -40,7 +40,7 @@ namespace CoiniumServ.Accounts
             Username = username;
             if (address != null && address.Contains("."))
             {
-                address = address.Substring(0,address.IndexOf(".", StringComparison.Ordinal) - 1);
+                address = address.Substring(0,address.IndexOf(".", StringComparison.Ordinal));
             }
             Address = address;
         }
