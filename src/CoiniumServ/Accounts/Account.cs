@@ -21,11 +21,12 @@
 // 
 #endregion
 
+using System;
 using CoiniumServ.Mining;
 
 namespace CoiniumServ.Accounts
 {
-    public class Account:IAccount
+    public class Account : IAccount
     {
         public int Id { get; private set; }
 
@@ -37,11 +38,15 @@ namespace CoiniumServ.Accounts
         {
             Id = id;
             Username = username;
+            if (address != null && address.Contains("."))
+            {
+                address = address.Substring(address.IndexOf(".", StringComparison.Ordinal) - 1);
+            }
             Address = address;
         }
 
         public Account(IMiner miner)
-            :this(-1, miner.Username, miner.Username)
+            : this(-1, miner.Username, miner.Username)
         { }
     }
 }
