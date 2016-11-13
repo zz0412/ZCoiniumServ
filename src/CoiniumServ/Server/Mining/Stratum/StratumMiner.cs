@@ -231,6 +231,8 @@ namespace CoiniumServ.Server.Mining.Stratum
             Send(notification); //send
         }
 
+        protected string _lastline = null;
+
         /// <summary>
         /// Parses the incoming data.
         /// </summary>
@@ -244,8 +246,18 @@ namespace CoiniumServ.Server.Mining.Stratum
             {
                 if (string.IsNullOrWhiteSpace(line)) // if line doesn't contain any data.
                     continue; // just skip it.
-
-                ProcessRequest(line); // process the json-rpc request.
+                var newline = line;
+                if (_lastline != null)
+                {
+                    newline = _lastline + newline;
+                    _lastline = null;
+                }
+                if (newline.Length > 0 && newline[newline.Length - 1] != '}')
+                {
+                    _lastline = newline;
+                    continue;
+                }
+                ProcessRequest(newline); // process the json-rpc request.
             }
         }
 
